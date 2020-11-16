@@ -3,6 +3,13 @@
 
 ![Schema Design in GIT](https://github.com/aoyerinde/Data_Modelling_Project/blob/main/project_3/Sparkify_DB.png)
 
+## File Descriptiob
+1. etl.py - This file extracts and loads s3 data into the dwh
+2. create_table.py - this file creates the staging and production tables
+3. sql_queries.py - this file holds all the load, create and insert queries used in  the other files
+4. dwh.cfg - all credential and user info 
+
+
 
 ## Fact Tables
 1. songplays - records in log data associated with song plays. Below are the field and data types 

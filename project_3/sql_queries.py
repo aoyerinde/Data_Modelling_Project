@@ -68,7 +68,7 @@ year INTEGER)
 
 songplay_table_create = ("""
 CREATE TABLE production_songplays (
-    songplay_id INTEGER IDENTITY(0,1),
+    songplay_id INTEGER IDENTITY(0,1) PRIMARY KEY,
     start_time TIMESTAMP,
     user_id  TEXT, 
     level  TEXT, 
@@ -94,7 +94,7 @@ CREATE TABLE production_users (
 
 song_table_create = ("""
 CREATE TABLE production_songs (   
-   song_id TEXT,
+   song_id TEXT PRIMARY KEY NOT NULL,
    title TEXT,
    artist_id TEXT,
    year INTEGER,
@@ -104,7 +104,7 @@ CREATE TABLE production_songs (
 
 artist_table_create = ("""
 CREATE TABLE production_artists (
-    artist_id TEXT,
+    artist_id TEXT PRIMARY KEY NOT NULL,
     name TEXT,
     location TEXT,
     longitude DOUBLE PRECISION,
@@ -115,7 +115,7 @@ CREATE TABLE production_artists (
 
 time_table_create = ("""
 CREATE TABLE production_time(
-    start_time TIMESTAMP, 
+    start_time TIMESTAMP PRIMARY KEY NOT NULL, 
     hour INTEGER,
     day INTEGER,
     week INTEGER,

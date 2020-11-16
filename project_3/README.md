@@ -1,7 +1,7 @@
 
 # Sparkify Data Pipeline 
 
-[Schema Design in GIT](https://github.com/aoyerinde/Data_Modelling_Project/blob/main/Sparkify_DB.png)
+![Schema Design in GIT](https://github.com/aoyerinde/Data_Modelling_Project/blob/main/Sparkify_DB.png)
 
 
 ## Fact Tables

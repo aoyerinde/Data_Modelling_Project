@@ -70,20 +70,23 @@ songplay_table_create = ("""
 CREATE TABLE production_songplays (
     songplay_id INTEGER IDENTITY(0,1) PRIMARY KEY,
     start_time TIMESTAMP,
-    user_id  TEXT, 
+    user_id  TEXT not null, 
     level  TEXT, 
-    song_id  TEXT, 
-    artist_id  TEXT, 
-    session_id TEXT, 
+    song_id  TEXT not null, 
+    artist_id  TEXT not null, 
+    session_id TEXT , 
     location TEXT, 
-    user_agent TEXT
+    user_agent TEXT,
+    foreign key (user_id) references production_users (user_id),
+    foreign key (artist_id) references production_artists (artist_id),
+    foreign key (song_id) references production_songs (song_id)
     )
     diststyle all;
 """)
 
 user_table_create = ("""
 CREATE TABLE production_users (
-    user_id VARCHAR,
+    user_id VARCHAR PRIMARY KEY,
     first_name TEXT,
     last_name TEXT, 
     gender TEXT,
@@ -96,9 +99,11 @@ song_table_create = ("""
 CREATE TABLE production_songs (   
    song_id TEXT PRIMARY KEY NOT NULL,
    title TEXT,
-   artist_id TEXT,
+   artist_id TEXT not null,
    year INTEGER,
-   duration DOUBLE PRECISION)
+   duration DOUBLE PRECISION,
+   foreign key (artist_id) references production_artists (artist_id)
+       )
    diststyle all;
 """)
 
@@ -152,7 +157,7 @@ songplay_table_insert = ("""
 
 insert into production_songplays (start_time, user_id, level, song_id, artist_id, session_id, location, user_agent)
 
-SELECT ts,user_id,level,song_id,artist_id,session_id,location,useragent
+SELECT DISTINCT ts,user_id,level,song_id,artist_id,session_id,location,useragent
 FROM (
     SELECT timestamp 'epoch' + staged_events.ts/1000 * interval '1 second' as ts, staged_events.user_id, staged_events.level, song_artist.song_id, song_artist.artist_id, staged_events.session_id, staged_events.location, staged_events.useragent
 
@@ -166,24 +171,27 @@ FROM (
     ON (song_artist.title = staged_events.song
 
     AND song_artist.name = staged_events.artist
-    )
+    AND AND song_artist.duration = staged_events.length)
+        )
+    WHERE staged_events.page = 'NextSong'
     )
 """)
 
 user_table_insert = ("""
 insert into production_users(user_id, first_name,last_name,gender,level)
     
-select user_id, 
+select DISTINCT user_id, 
     firstname,
     lastname,
     gender,
-    level from staging_events;
+    level from staging_events
+    WHERE staging_events.page = 'NextSong';
 
 """)
 
 song_table_insert = ("""
 insert into production_songs (song_id, title, artist_id, year, duration)
-select song_id, 
+select DISTINCT song_id, 
     title, 
     artist_id, 
     year, 
@@ -192,7 +200,7 @@ select song_id,
 
 artist_table_insert = ("""
 insert into production_artists (artist_id, name, location, longitude, latitude) 
-select artist_id, 
+select DISTINCT artist_id, 
     artist_name, 
     artist_location,
     artist_longitude,
@@ -203,14 +211,14 @@ select artist_id,
 time_table_insert = ("""
 insert into production_time (start_time,hour,day,week,month,year,weekday
 )
-SELECT timestamp 'epoch' + ts/1000 * interval '1 second' as start_time, 
+SELECT DISTINCT timestamp 'epoch' + ts/1000 * interval '1 second' as start_time, 
 DATE_PART(hrs, start_time) as hour,
 DATE_PART(day, start_time) as day,
 DATE_PART(w, start_time) as week,
 DATE_PART(mons,start_time) as month,
 DATE_PART(yrs, start_time) as year,
 DATE_PART(dow, start_time) as weekday
-from staging_events;
+from songplay_table_insert;
 """)
 
 # QUERY LISTS
@@ -226,4 +234,4 @@ drop_table_queries = [staging_events_table_drop, staging_songs_table_drop, songp
 copy_table_queries = [staging_events_copy, staging_songs_copy]
 
 
-insert_table_queries = [user_table_insert, song_table_insert, artist_table_insert, time_table_insert, songplay_table_insert]
+insert_table_queries = [user_table_insert, song_table_insert, artist_table_insert, songplay_table_insert, time_table_insert]
